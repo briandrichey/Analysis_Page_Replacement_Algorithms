@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 	//Print basic information about the program
 	std::cout << "=================================================================" << std::endl;
 	std::cout << "CS 433 Programming assignment 5" << std::endl;
-	std::cout << "Authors: Jake Tremblay, Danny Ha, Brian Richie" << std::endl;
+	std::cout << "Authors: Jake Tremblay, Danny Ha, Brian Richey" << std::endl;
 	std::cout << "Date: 12/1/2021" << std::endl;
 	std::cout << "Course: CS433 (Operating Systems)" << std::endl;
 	std::cout << "Description : Program to simulate different page replacement algorithms" << std::endl;
