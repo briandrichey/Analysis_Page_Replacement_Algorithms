@@ -88,13 +88,13 @@ int main(int argc, char* argv[]) {
 
 			PageEntry temp(i++, false, false);
 			
-			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {
-				std::cout << "PageTable contains: " << pageNum << std::endl;
+			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {		//if the page table's map finds the element, we can just print message?
+				std::cout << "Memory address: " << input << " --> " << pageNum << " found in PageTable." << std::endl;
 			}
 			else {
-				std::cout << "Page Fault in table for address: " << input << "____Adding Page to Table!!Page Number : " << pageNum << std::endl;
+				std::cout << "Memory address: " << input << "--> Page Fault, Adding to PageTable: " << pageNum << std::endl;
 				pageFaults++;			
-				ourTable.pageTable2[pageNum] = temp;
+				ourTable.pageTable2[pageNum] = temp;				//ourTable is the page table, pageTable2 is a map<int pageNum, PageEntry>
 			}
 			
 		}
