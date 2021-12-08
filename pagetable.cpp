@@ -18,3 +18,20 @@ PageTable::PageTable(){
 	memorySize = 0;
 }
 
+PageTable::PageTable(int tSize, int pSize, int mSize){
+	tableSize = tSize;
+	pageSize = pSize;
+	memorySize = mSize;
+}
+
+void PageTable::init(int size){
+	for (int i = 0; i < size; i++) {
+		PageEntry newEntry;
+		newEntry.frame_num = -1;
+		newEntry.dirty = false;
+		newEntry.valid = false;
+
+		pageTable.push_back(newEntry);
+	}
+}
+

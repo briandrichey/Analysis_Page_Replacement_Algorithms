@@ -1,5 +1,5 @@
 #pragma once
-
+#include <map>
 #include <vector>
 
 //page table entry
@@ -20,10 +20,17 @@ public:
 class PageTable{
 public:
 	std::vector<PageEntry> pageTable;
+	std::map<int, PageEntry> pageTable2;
+
 	int tableSize;				//number of elements in table
 	int pageSize;				//size of pages (in mb?)
 	int memorySize;				//size of memory (in mb?)
 
 	PageTable();				//constructor
+	PageTable(int tSize, int pSize, int mSize);
+
+	void init(int size);
+
+	
 private:
 };

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+#include "pagetable.h"
 
 // Check if an integer is power of 2
 bool isPowerOfTwo(unsigned int x)
@@ -18,7 +19,7 @@ int main(int argc, char* argv[]) {
 	//Print basic information about the program
 	std::cout << "=================================================================" << std::endl;
 	std::cout << "CS 433 Programming assignment 5" << std::endl;
-	std::cout << "Authors: Jake Tremblay, Danny Ha, Brian Richey" << std::endl;
+	std::cout << "Authors: Jake Tremblay, Danny Ha, Brian Richie" << std::endl;
 	std::cout << "Date: 12/1/2021" << std::endl;
 	std::cout << "Course: CS433 (Operating Systems)" << std::endl;
 	std::cout << "Description : Program to simulate different page replacement algorithms" << std::endl;
@@ -63,9 +64,10 @@ int main(int argc, char* argv[]) {
 	std::cout << "Physical Memory size = " << phys_mem_size << " bytes" << std::endl;
 	std::cout << "Number of pages = " << num_pages << std::endl;
 	std::cout << "Number of physical frames = " << num_frames << std::endl;
-
-
-
+	
+	PageTable ourTable;
+	ourTable.init(num_pages); //creates 'num_pages' amount of PageEntry into vector (-1, false, false) are starting values
+	
 
 
 	// Test 1: Read and simulate the small list of logical addresses from the input file "small_refs.txt"
@@ -78,15 +80,31 @@ int main(int argc, char* argv[]) {
 		std::cout << "Error in file creation." << std::endl;
 	}
 	else {
-		int input;
+		int input, i = 0, pageFaults = 0;
+
 		while (smallFile.eof() == false) {
 			smallFile >> input;
-			int pageNum = input / page_size;
-			std::cout << "Page number for logical address: " << input << " is : " << pageNum << std::endl;
+			int pageNum = input / page_size;    
+
+			PageEntry temp(i++, false, false);
+			
+			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {
+				std::cout << "PageTable contains: " << pageNum << std::endl;
+			}
+			else {
+				std::cout << "Page Fault in table for address: " << input << "____Adding Page to Table!!Page Number : " << pageNum << std::endl;
+				pageFaults++;			
+				ourTable.pageTable2[pageNum] = temp;
+			}
+			
 		}
 
-
 		smallFile.close();
+
+		for (auto it = ourTable.pageTable2.begin(); it != ourTable.pageTable2.end(); ++it) {
+			std::cout << "Page number: " << it->first << "  Frame number: " << it->second.frame_num << std::endl;
+		}
+		std::cout << "Page faults: " << pageFaults << std::endl;
 	}
 	
 
