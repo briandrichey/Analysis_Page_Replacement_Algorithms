@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <vector>
+#include <unordered_map>
 
 //page table entry
 class PageEntry{
@@ -20,7 +21,7 @@ public:
 class PageTable{
 public:
 	std::vector<PageEntry> pageTable;
-	std::map<int, PageEntry> pageTable2;
+	std::unordered_map<int, PageEntry> pageTable2;
 
 	int tableSize;				//number of elements in table
 	int pageSize;				//size of pages (in mb?)

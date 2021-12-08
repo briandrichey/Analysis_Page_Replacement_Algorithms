@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Error in file creation." << std::endl;
 	}
 	else {
-		int input, frame = 0, pageFaults = 0, pageCount = -1, pageReplacements = 0;
+		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0;
 
 		while (smallFile.eof() == false) {								//go through small reference file until end
 			smallFile >> input;
@@ -87,15 +87,19 @@ int main(int argc, char* argv[]) {
 
 			PageEntry temp(frame, false, false);						//create a new page entry using frame # we are currently on
 			
+
 			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {		//if the page table's map finds the element
-				std::cout << "Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << temp.frame_num << " Page Fault?: " << temp.dirty << std::endl;
+				auto it = ourTable.pageTable2.find(pageNum);
+				PageEntry target = it->second;
+				target.dirty = false;
+				std::cout << "Logical Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << target.frame_num << " Page Fault?: " << target.dirty << std::endl;
 			}
 			else if(!(ourTable.pageTable2.size() > num_pages)){							//if the page is not found in the table, and the tables size is not greater than number of pages
 				frame++;											//we only insert into a new frame if we actually have to insert, i believe
 				pageFaults++;										//if we dont find the page in the map, page fault + 1
 				temp.dirty = true;									//set dirty bit to true so we know this has generated page fault
 				ourTable.pageTable2.emplace(pageNum, temp);				//ourTable is the page table, pageTable2 is a map<int pageNum, PageEntry>
-				std::cout << "Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << temp.frame_num << " Page Fault?: " << temp.dirty << std::endl;
+				std::cout << "Logical Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << temp.frame_num << " Page Fault?: " << temp.dirty << std::endl;
 			}
 			else {
 				pageReplacements++;									//the small ref will never hit this line
@@ -125,7 +129,15 @@ int main(int argc, char* argv[]) {
 		std::cout << "Error in file creation." << std::endl;
 	}
 	else {
-		//FIFO code starts here
+		
+		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0;
+		//timer start
+		while (largeFile.eof() == false) {
+			largeFile >> input;
+			int pageNum = input / page_size;
+			++pageCount;
+		}
+		//timer end
 	}
 
 	std::cout << "****************Simulate Random replacement****************************" << std::endl;
