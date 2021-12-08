@@ -66,10 +66,8 @@ int main(int argc, char* argv[]) {
 	std::cout << "Number of physical frames = " << num_frames << std::endl;
 	
 	PageTable ourTable;
-	ourTable.init(num_pages); //creates 'num_pages' amount of PageEntry into vector (-1, false, false) are starting values
+	ourTable.init(num_pages);			//creates 'num_pages' amount of PageEntry into pageTable vector (-1, false, false) are starting values
 	
-
-
 	// Test 1: Read and simulate the small list of logical addresses from the input file "small_refs.txt"
 	std::cout << "\n================================Test 1==================================================\n";
 	// TODO: Add your code here for test 1 that prints out logical page #, frame # and whether page fault for each logical address
@@ -80,31 +78,35 @@ int main(int argc, char* argv[]) {
 		std::cout << "Error in file creation." << std::endl;
 	}
 	else {
-		int input, i = 0, pageFaults = 0;
+		int input, frame = 0, pageFaults = 0, pageCount = -1, pageReplacements = 0;
 
-		while (smallFile.eof() == false) {
+		while (smallFile.eof() == false) {								//go through small reference file until end
 			smallFile >> input;
-			int pageNum = input / page_size;    
+			int pageNum = input / page_size;
+			++pageCount;												//count up the references we get through
 
-			PageEntry temp(i++, false, false);
+			PageEntry temp(frame, false, false);						//create a new page entry using frame # we are currently on
 			
-			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {		//if the page table's map finds the element, we can just print message?
-				std::cout << "Memory address: " << input << " --> " << pageNum << " found in PageTable." << std::endl;
+			if (ourTable.pageTable2.find(pageNum) != ourTable.pageTable2.end()) {		//if the page table's map finds the element
+				std::cout << "Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << temp.frame_num << " Page Fault?: " << temp.dirty << std::endl;
+			}
+			else if(!(ourTable.pageTable2.size() > num_pages)){							//if the page is not found in the table, and the tables size is not greater than number of pages
+				frame++;											//we only insert into a new frame if we actually have to insert, i believe
+				pageFaults++;										//if we dont find the page in the map, page fault + 1
+				temp.dirty = true;									//set dirty bit to true so we know this has generated page fault
+				ourTable.pageTable2.emplace(pageNum, temp);				//ourTable is the page table, pageTable2 is a map<int pageNum, PageEntry>
+				std::cout << "Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << temp.frame_num << " Page Fault?: " << temp.dirty << std::endl;
 			}
 			else {
-				std::cout << "Memory address: " << input << "--> Page Fault, Adding to PageTable: " << pageNum << std::endl;
-				pageFaults++;			
-				ourTable.pageTable2[pageNum] = temp;				//ourTable is the page table, pageTable2 is a map<int pageNum, PageEntry>
+				pageReplacements++;									//the small ref will never hit this line
 			}
-			
 		}
-
 		smallFile.close();
 
-		for (auto it = ourTable.pageTable2.begin(); it != ourTable.pageTable2.end(); ++it) {
-			std::cout << "Page number: " << it->first << "  Frame number: " << it->second.frame_num << std::endl;
-		}
-		std::cout << "Page faults: " << pageFaults << std::endl;
+		
+		std::cout << "Number of references: " << pageCount << std::endl;
+		std::cout << "Number of page faults: " << pageFaults << std::endl;
+		std::cout << "Number of page replacements: " << pageReplacements << std::endl;
 	}
 	
 
@@ -116,6 +118,15 @@ int main(int argc, char* argv[]) {
 	std::cout << "****************Simulate FIFO replacement****************************" << std::endl;
 	// TODO: Add your code to calculate number of page faults using FIFO replacement algorithm	
 	// TODO: print the statistics and run-time
+
+	std::ifstream largeFile;
+	largeFile.open("large_refs.txt", std::ios::in);
+	if (!largeFile) {
+		std::cout << "Error in file creation." << std::endl;
+	}
+	else {
+		//FIFO code starts here
+	}
 
 	std::cout << "****************Simulate Random replacement****************************" << std::endl;
 	// TODO: Add your code to calculate number of page faults using Random replacement algorithm

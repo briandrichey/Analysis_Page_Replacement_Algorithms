@@ -24,6 +24,7 @@ PageTable::PageTable(int tSize, int pSize, int mSize){
 	memorySize = mSize;
 }
 
+//this is only really for the vector 
 void PageTable::init(int size){
 	for (int i = 0; i < size; i++) {
 		PageEntry newEntry;
