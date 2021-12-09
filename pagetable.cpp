@@ -32,7 +32,7 @@ void PageTable::init(int size){
 		newEntry.dirty = false;
 		newEntry.valid = false;
 
-		pageTable.push_back(newEntry);
+		pageVector.push_back(newEntry);
 	}
 }
 

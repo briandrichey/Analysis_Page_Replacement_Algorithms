@@ -1,11 +1,13 @@
 #pragma once
-#include <map>
+
 #include <vector>
+#include <queue>
 #include <unordered_map>
 
 //page table entry
 class PageEntry{
 public:
+	int page_addr;
 	int frame_num;				// Physical frame number for a given page
 	bool valid = false;			// valid bit represents whether a page is in the physical memory
 	bool dirty = false;			// dirty bit represents whether a page is changed
@@ -20,8 +22,9 @@ public:
  */
 class PageTable{
 public:
-	std::vector<PageEntry> pageTable;
-	std::unordered_map<int, PageEntry> pageTable2;
+	std::vector<PageEntry> pageVector;
+	std::queue<PageEntry> pageQueue;
+	std::unordered_map<int, PageEntry> pageMap;
 
 	int tableSize;				//number of elements in table
 	int pageSize;				//size of pages (in mb?)
