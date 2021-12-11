@@ -2,12 +2,14 @@
 
 #include <vector>
 #include <queue>
+#include <deque>
 #include <unordered_map>
+
 
 //page table entry
 class PageEntry{
 public:
-	int page_addr;
+	int page_addr;				// Actual page number that gets calculated
 	int frame_num;				// Physical frame number for a given page
 	bool valid = false;			// valid bit represents whether a page is in the physical memory
 	bool dirty = false;			// dirty bit represents whether a page is changed
@@ -25,6 +27,8 @@ public:
 	std::vector<PageEntry> pageVector;
 	std::queue<PageEntry> pageQueue;
 	std::unordered_map<int, PageEntry> pageMap;
+	std::deque<int> pageDeque;
+
 
 	int tableSize;				//number of elements in table
 	int pageSize;				//size of pages (in mb?)

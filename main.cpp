@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #include "pagetable.h"
 
 // Check if an integer is power of 2
@@ -69,11 +70,10 @@ int main(int argc, char* argv[]) {
 
 
 	PageTable ourTable;
-	//ourTable.init(num_pages);			//creates 'num_pages' amount of PageEntry into pageTable vector (-1, false, false) are starting values
+	//ourTable.init(num_pages);			
 	
 	// Test 1: Read and simulate the small list of logical addresses from the input file "small_refs.txt"
 	std::cout << "\n================================Test 1==================================================\n";
-	// TODO: Add your code here for test 1 that prints out logical page #, frame # and whether page fault for each logical address
 
 	std::ifstream smallFile;
 	smallFile.open("small_refs.txt", std::ios::in);
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 		while (smallFile.eof() == false) {								//go through small reference file until end
 			smallFile >> input;
 			int pageNum = input / page_size;
-			++pageCount;												//count up the references we get through
+			pageCount++;												//count up the references we get through
 
 			PageEntry newPage(frame, false, false);						//create a new page entry using frame # we are currently on
 
@@ -107,13 +107,12 @@ int main(int argc, char* argv[]) {
 					std::cout << "Logical Memory address: " << input << " Page Number: " << pageNum << " Frame Number: " << newPage.frame_num << " Page Fault?: " << newPage.dirty << std::endl;
 				}
 			}
-			else {	//if map has grown to size of num_frames, we do replacements
+			else {	//if map has grown to size of num_frames, we do replacements, this should not get hit in test 1
 				pageReplacements++;
 			}
 			
 		}
 		smallFile.close();
-
 
 		std::cout << "Number of references: " << pageCount << std::endl;
 		std::cout << "Number of page faults: " << pageFaults << std::endl;
@@ -122,16 +121,11 @@ int main(int argc, char* argv[]) {
 		ourTable.pageMap.clear();
 		ourTable.pageVector.clear();
 	}
-	
-
 
 
 	// Test 2: Read and simulate the large list of logical addresses from the input file "large_refs.txt"
 	std::cout << "\n================================Test 2==================================================\n";
-
 	std::cout << "****************Simulate FIFO replacement****************************" << std::endl;
-	// TODO: Add your code to calculate number of page faults using FIFO replacement algorithm	
-	// TODO: print the statistics and run-time
 
 	std::ifstream fifoFile;
 	fifoFile.open("large_refs.txt", std::ios::in);
@@ -143,10 +137,10 @@ int main(int argc, char* argv[]) {
 		std::ios_base::sync_with_stdio(false);
 
 
-		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0, queuePushes = 0;
+		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0;
 		int i = 0;
 
-		while (fifoFile.eof() == false) {								//go through small reference file until end
+		while (fifoFile.eof() == false) {								//go through large reference file until end
 			fifoFile >> input;
 			int pageNum = input / page_size;
 			++pageCount;												//count up the references we get 
@@ -192,15 +186,13 @@ int main(int argc, char* argv[]) {
 		std::cout << "Number of references: " << pageCount << std::endl;
 		std::cout << "Number of page faults: " << pageFaults << std::endl;
 		std::cout << "Number of page replacements: " << pageReplacements << std::endl;
-		std::cout << "Time taken by program is : " << std::fixed << time_taken << std::setprecision(9);
+		std::cout << "Time taken by program is : " << std::fixed << time_taken << std::setprecision(4);
 		std::cout << " sec" << std::endl;
 
 		ourTable.pageMap.clear();
 	}
 
 	std::cout << "****************Simulate Random replacement****************************" << std::endl;
-	// TODO: Add your code to calculate number of page faults using Random replacement algorithm
-	// TODO: print the statistics and run-time
 
 	std::ifstream rFile;
 	rFile.open("large_refs.txt", std::ios::in);
@@ -211,7 +203,6 @@ int main(int argc, char* argv[]) {
 		auto start = std::chrono::high_resolution_clock::now();
 		std::ios_base::sync_with_stdio(false);
 
-
 		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0;
 
 		while (rFile.eof() == false) {								//go through small reference file until end
@@ -221,31 +212,34 @@ int main(int argc, char* argv[]) {
 
 			PageEntry newPage(frame, false, false);						//create a new page entry using frame # we are currently on
 
-			if (ourTable.pageMap.find(pageNum) != ourTable.pageMap.end()) {		//if the page table's map finds the element
-				
-			}
-			else if (ourTable.pageVector.size() < num_frames) {							//if the page is not found in the table, and the tables size is not greater than capacity
-				frame++;											//we only insert into a new frame if we actually have to insert, i believe
-				pageFaults++;										//if we dont find the page in the map, page fault + 1
-				newPage.dirty = true;									//set dirty bit to true so we know this has generated page fault
-				newPage.valid = true;
-				newPage.page_addr = pageNum;
-				ourTable.pageMap.emplace(pageNum, newPage);
-				ourTable.pageVector.push_back(newPage);
+			if (ourTable.pageMap.size() < num_frames) {		
+				if (ourTable.pageMap.find(pageNum) == ourTable.pageMap.end()) {	//if no match in the table
+					frame++;
+					pageFaults++;
+
+					newPage.dirty = true;
+					newPage.valid = true;
+					newPage.page_addr = pageNum;
+					ourTable.pageMap.emplace(pageNum, newPage);
+					ourTable.pageVector.push_back(newPage);
+				}
 			}
 			else {
-				srand(time(0));
-				int r = rand() % num_frames;
+				if (ourTable.pageMap.find(pageNum) == ourTable.pageMap.end()) { //if set is full and we cant find the match, need to random replace
+					pageReplacements++;
+					pageFaults++;
 
-				PageEntry removed = ourTable.pageVector.at(r);
-				ourTable.pageVector.at(r) = newPage;
-				ourTable.pageMap.erase(removed.page_addr);
+					srand(time(nullptr));
+					int r = rand() % num_frames;
+					PageEntry target = ourTable.pageVector.at(r);
 
-				ourTable.pageMap.emplace(pageNum, newPage);				
+					ourTable.pageVector.at(r) = newPage;
+					ourTable.pageMap.erase(target.page_addr);
 
-				pageReplacements++;
-				pageFaults++;
+					ourTable.pageMap.emplace(pageNum, newPage);
+				}
 			}
+			
 
 		}
 		auto end = std::chrono::high_resolution_clock::now();
@@ -257,7 +251,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Number of references: " << pageCount << std::endl;
 		std::cout << "Number of page faults: " << pageFaults << std::endl;
 		std::cout << "Number of page replacements: " << pageReplacements << std::endl;
-		std::cout << "Time taken by program is : " << std::fixed << time_taken << std::setprecision(9);
+		std::cout << "Time taken by program is : " << std::fixed << time_taken << std::setprecision(4);
 		std::cout << " sec" << std::endl;
 
 		ourTable.pageMap.clear();
@@ -268,5 +262,84 @@ int main(int argc, char* argv[]) {
 	std::cout << "****************Simulate LRU replacement****************************" << std::endl;
 	// TODO: Add your code to calculate number of page faults using LRU replacement algorithm
 	// TODO: print the statistics and run-time
+
+	std::ifstream lruFile;
+	lruFile.open("large_refs.txt", std::ios::in);
+	if (!lruFile) {
+		std::cout << "Error in file creation." << std::endl;
+	}
+	else {
+		auto start = std::chrono::high_resolution_clock::now();
+		std::ios_base::sync_with_stdio(false);
+
+
+		int input, frame = 0, pageFaults = 0, pageCount = 0, pageReplacements = 0;
+
+		while (lruFile.eof() == false) {								//go through small reference file until end
+			lruFile >> input;
+			int pageNum = input / page_size;
+			++pageCount;												//count up the references we get through
+
+			PageEntry newPage(frame, false, false);						//create a new page entry using frame # we are currently on
+
+			if (ourTable.pageMap.size() < num_frames) {    
+				if (ourTable.pageMap.find(pageNum) == ourTable.pageMap.end()) {	//if no match in the table
+					frame++;
+					pageFaults++;
+
+					newPage.dirty = true;
+					newPage.valid = true;
+					newPage.page_addr = pageNum;
+
+					ourTable.pageMap.emplace(pageNum, newPage);
+					ourTable.pageDeque.push_front(pageNum);		//front of deque is 'top' of stack			
+				}
+				else {	//page is present, we can move the top of the deque along
+					auto it = std::find(ourTable.pageDeque.begin(), ourTable.pageDeque.end(), pageNum);
+					if (it != ourTable.pageDeque.end()) {
+						ourTable.pageDeque.erase(it);
+						ourTable.pageDeque.push_front(pageNum);
+					}
+				}
+			}
+			else {			//pageMap is now filled to capacity and we need to do lru replacements
+				if (ourTable.pageMap.find(pageNum) == ourTable.pageMap.end()) {		//if page is not present
+					pageReplacements++;
+					pageFaults++;
+
+					PageEntry target;
+					target.page_addr = ourTable.pageDeque.front();	
+					ourTable.pageDeque.pop_front();
+					ourTable.pageMap.erase(target.page_addr);
+
+					ourTable.pageMap.emplace(pageNum, newPage);
+					ourTable.pageDeque.push_front(pageNum);
+				}
+				else {	//page is present, we can move the top of the deque along
+					auto it = std::find(ourTable.pageDeque.begin(), ourTable.pageDeque.end(), pageNum);
+					if (it != ourTable.pageDeque.end()) {
+						ourTable.pageDeque.erase(it);
+						ourTable.pageDeque.push_front(pageNum);
+					}
+				}
+				
+			}
+		}
+
+		auto end = std::chrono::high_resolution_clock::now();
+		double time_taken = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+		time_taken *= 1e-9;
+
+		lruFile.close();
+
+		std::cout << "Number of references: " << pageCount << std::endl;
+		std::cout << "Number of page faults: " << pageFaults << std::endl;
+		std::cout << "Number of page replacements: " << pageReplacements << std::endl;
+		std::cout << "Time taken by program is : " << std::fixed << time_taken << std::setprecision(4);
+		std::cout << " sec" << std::endl;
+
+		ourTable.pageMap.clear();
+		ourTable.pageVector.clear();
+	}
 
 }
